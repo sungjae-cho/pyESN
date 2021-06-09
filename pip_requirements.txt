@@ -1,0 +1,4 @@
+matplotlib
+numpy
+unittest2
+jupyterlab
