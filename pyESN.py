@@ -127,7 +127,7 @@ class ESN():
             preactivation = (np.dot(self.W, state)
                              + np.dot(self.W_in, input_pattern))
         return (np.tanh(preactivation)
-                + self.noise * (self.random_state_.rand(self.n_reservoir) - 0.5))
+                + self.noise * 2 * (self.random_state_.rand(self.n_reservoir) - 0.5))
 
     def _scale_inputs(self, inputs):
         """for each input dimension j: multiplies by the j'th entry in the
