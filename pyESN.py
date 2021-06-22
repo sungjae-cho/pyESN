@@ -47,6 +47,7 @@ class ESN():
             spectral_radius: spectral radius of the recurrent weight matrix
             sparsity: proportion of recurrent weights set to zero
             noise: noise added to each neuron (regularization)
+             - Uniform distribution in interval [-noise, noise)
             input_shift: scalar or vector of length n_inputs to add to each
                         input dimension before feeding it to the network.
             input_scaling: scalar or vector of length n_inputs to multiply
