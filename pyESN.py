@@ -30,12 +30,15 @@ def identity(x):
 
 class ESN():
 
-    def __init__(self, n_inputs, n_outputs, n_reservoir=200,
-                 spectral_radius=0.95, sparsity=0, noise=0.001, input_shift=None,
-                 input_scaling=None, teacher_forcing=True, feedback_scaling=None,
+    def __init__(self, n_inputs, n_outputs, 
+                 n_reservoir=200,
+                 spectral_radius=0.95, sparsity=0, noise=0.001, 
+                 input_scaling=None, input_shift=None,
+                 teacher_forcing=True, feedback_scaling=None,
                  teacher_scaling=None, teacher_shift=None,
                  out_activation=identity, inverse_out_activation=identity,
-                 random_state=None, silent=True):
+                 random_state=None, silent=True,
+                 concat_input2state=False):
         """
         Args:
             n_inputs: nr of input dimensions
@@ -73,6 +76,7 @@ class ESN():
         self.out_activation = out_activation
         self.inverse_out_activation = inverse_out_activation
         self.random_state = random_state
+        self.concat_input2state = concat_input2state
 
         # the given random_state might be either an actual RandomState object,
         # a seed or None (in which case we use numpy's builtin RandomState)
@@ -187,7 +191,11 @@ class ESN():
         # we'll disregard the first few states:
         transient = min(int(inputs.shape[1] / 10), 100)
         # include the raw inputs:
-        extended_states = np.hstack((states, inputs_scaled))
+        if self.concat_input2state:
+            extended_states = np.hstack((states, inputs_scaled))
+        else:
+            extended_states = states
+
         # Solve for W_out:
         self.W_out = np.dot(np.linalg.pinv(extended_states[transient:, :]),
                             self.inverse_out_activation(teachers_scaled[transient:, :])).T
@@ -249,7 +257,12 @@ class ESN():
         for n in range(n_samples):
             states[
                 n + 1, :] = self._update(states[n, :], inputs[n + 1, :], outputs[n, :])
-            outputs[n + 1, :] = self.out_activation(np.dot(self.W_out,
-                                                           np.concatenate([states[n + 1, :], inputs[n + 1, :]])))
+            if self.concat_input2state:
+                current_state = np.concatenate([states[n + 1, :], inputs[n + 1, :]])
+            else:
+                current_state = np.expand_dims(states[n + 1, :], axis=-1)
+            outputs[n + 1, :] = self.out_activation(np.dot(self.W_out, current_state))
+            
+        self.pred_states = states
 
         return self._unscale_teacher(self.out_activation(outputs[1:]))
