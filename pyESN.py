@@ -94,6 +94,9 @@ class ESN():
         self.teacher_forcing = teacher_forcing
         self.silent = silent
         self.initweights()
+        
+    def get_pred_states(self):
+        return self.pred_states[1:,:]
 
     def initweights(self):
         # initialize recurrent weights:
